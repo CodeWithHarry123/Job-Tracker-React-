@@ -1,302 +1,857 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Job Application Tracker</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>Job Application Tracker Pro</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#3182CE",
+            secondary: "#38B2AC",
+            success: "#38A169",
+            warning: "#D69E2E",
+            danger: "#E53E3E",
+            "background-light": "#f6f7f8",
+            "background-dark": "#101922",
+            "card-light": "#ffffff",
+            "card-dark": "#1a202c",
+          },
+          fontFamily: {
+            display: ["Inter", "sans-serif"]
+          },
+          borderRadius: {
+            'xl': '1rem',
+            '2xl': '1.5rem'
+          },
+          animation: {
+            'fade-in': 'fadeIn 0.3s ease-in-out',
+            'slide-up': 'slideUp 0.3s ease-out',
+            'pulse-soft': 'pulseSoft 2s infinite',
+          },
+          keyframes: {
+            fadeIn: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' }
+            },
+            slideUp: {
+              '0%': { transform: 'translateY(10px)', opacity: '0' },
+              '100%': { transform: 'translateY(0)', opacity: '1' }
+            },
+            pulseSoft: {
+              '0%, 100%': { opacity: '1' },
+              '50%': { opacity: '0.7' }
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .material-symbols-rounded {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .dark .material-symbols-rounded {
+      font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+    }
+    .line-clamp-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+  </style>
 </head>
-<body class="bg-gray-50 font-sans">
-  <div class="max-w-4xl mx-auto p-4 md:p-6">
+<body class="bg-background-light dark:bg-background-dark font-display text-[#1A202C] dark:text-gray-200">
+  <div id="app">
     <!-- Header -->
-    <header class="mb-8">
-      <h1 class="text-3xl md:text-4xl font-bold text-gray-800">Job Application Tracker</h1>
+    <header class="sticky top-0 z-20 w-full bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-700">
+      <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-rounded text-primary text-2xl">work</span>
+            <h1 class="text-lg font-bold tracking-tight">Job Tracker Pro</h1>
+          </div>
+          <div class="flex items-center gap-4">
+            <!-- Quick Stats -->
+            <div class="hidden md:flex items-center gap-2 text-sm">
+              <span class="px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200" id="statApplied">0</span>
+              <span class="px-2 py-1 rounded-full bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200" id="statInterviewing">0</span>
+              <span class="px-2 py-1 rounded-full bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200" id="statOffer">0</span>
+              <span class="px-2 py-1 rounded-full bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200" id="statRejected">0</span>
+            </div>
+            <!-- Dark Mode Toggle -->
+            <button id="darkModeToggle" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" aria-label="Toggle dark mode">
+              <span class="material-symbols-rounded text-yellow-500 dark:hidden">light_mode</span>
+              <span class="material-symbols-rounded text-blue-400 hidden dark:inline">dark_mode</span>
+            </button>
+            <!-- Export Button -->
+            <button id="exportBtn" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" aria-label="Export data">
+              <span class="material-symbols-rounded">download</span>
+            </button>
+            <!-- Import Button -->
+            <input type="file" id="importFile" accept=".json" class="hidden">
+            <button id="importBtn" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" aria-label="Import data">
+              <span class="material-symbols-rounded">upload</span>
+            </button>
+          </div>
+        </div>
+      </div>
     </header>
 
-    <!-- Form Section -->
-    <section class="bg-white p-6 rounded-lg shadow-md mb-8">
-      <h2 class="text-xl font-semibold text-gray-800 mb-4">Add New Application</h2>
-      <form id="applicationForm" class="space-y-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label for="company" class="block text-sm font-medium text-gray-700 mb-1">Company Name *</label>
-            <input type="text" id="company" name="company" required 
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+    <!-- Main Content -->
+    <main class="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <!-- Stats Dashboard -->
+      <section class="mb-8" id="statsSection">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Applied</p>
+                <p class="text-2xl font-bold text-blue-600 dark:text-blue-400" id="statAppliedCard">0</p>
+              </div>
+              <span class="material-symbols-rounded text-blue-500 text-2xl">inbox</span>
+            </div>
           </div>
-          <div>
-            <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Job Title *</label>
-            <input type="text" id="title" name="title" required 
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+          <div class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Interviewing</p>
+                <p class="text-2xl font-bold text-yellow-600 dark:text-yellow-400" id="statInterviewingCard">0</p>
+              </div>
+              <span class="material-symbols-rounded text-yellow-500 text-2xl">group</span>
+            </div>
+          </div>
+          <div class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Offers</p>
+                <p class="text-2xl font-bold text-green-600 dark:text-green-400" id="statOfferCard">0</p>
+              </div>
+              <span class="material-symbols-rounded text-green-500 text-2xl">celebration</span>
+            </div>
+          </div>
+          <div class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Rejected</p>
+                <p class="text-2xl font-bold text-red-600 dark:text-red-400" id="statRejectedCard">0</p>
+              </div>
+              <span class="material-symbols-rounded text-red-500 text-2xl">cancel</span>
+            </div>
           </div>
         </div>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label for="date" class="block text-sm font-medium text-gray-700 mb-1">Date Applied *</label>
-            <input type="date" id="date" name="date" required 
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-          </div>
-          <div>
-            <label for="link" class="block text-sm font-medium text-gray-700 mb-1">Application Link</label>
-            <input type="url" id="link" name="link" placeholder="https://example.com"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-          </div>
-        </div>
+      </section>
 
-        <div>
-          <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-          <textarea id="notes" name="notes" rows="3" 
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="Any additional notes..."></textarea>
+      <!-- Form Section -->
+      <section class="mb-10">
+        <div class="bg-white dark:bg-gray-800/50 rounded-xl shadow-lg p-6 sm:p-8 border border-gray-200 dark:border-gray-700">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-2xl font-bold text-[#1A202C] dark:text-white">Add New Application</h2>
+            <button id="clearFormBtn" class="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors">
+              Clear Form
+            </button>
+          </div>
+          <form id="applicationForm" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="space-y-2">
+                <label for="company" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Company Name *</label>
+                <input type="text" id="company" name="company" required 
+                  class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                  placeholder="e.g., Google">
+              </div>
+              <div class="space-y-2">
+                <label for="title" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Job Title *</label>
+                <input type="text" id="title" name="title" required 
+                  class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                  placeholder="e.g., Senior Frontend Developer">
+              </div>
+              <div class="space-y-2">
+                <label for="date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Date Applied *</label>
+                <input type="date" id="date" name="date" required 
+                  class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors">
+              </div>
+              <div class="space-y-2">
+                <label for="link" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Application Link</label>
+                <input type="url" id="link" name="link" 
+                  class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                  placeholder="https://...">
+              </div>
+            </div>
+            <div class="space-y-2">
+              <label for="notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes</label>
+              <textarea id="notes" name="notes" rows="4" 
+                class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors resize-y"
+                placeholder="Add any relevant notes about the application..."></textarea>
+            </div>
+            <div class="flex justify-end gap-3">
+              <button type="button" id="saveDraftBtn" class="px-6 py-3 text-base font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors hidden">
+                Save Draft
+              </button>
+              <button type="submit" 
+                class="flex items-center justify-center gap-2 px-6 py-3 bg-primary hover:bg-primary/90 text-white font-semibold rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                <span class="material-symbols-rounded text-sm">add</span>
+                Add Application
+              </button>
+            </div>
+          </form>
         </div>
+      </section>
 
-        <div class="flex justify-end">
-          <button type="submit" 
-            class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-            Add Application
-          </button>
+      <!-- Filter Section -->
+      <section class="mb-6">
+        <div class="flex flex-col sm:flex-row gap-4 items-center justify-between">
+          <h2 class="text-2xl font-bold text-[#1A202C] dark:text-white">My Applications</h2>
+          <div class="flex items-center gap-3 w-full sm:w-auto">
+            <div class="relative flex-1 sm:flex-initial">
+              <span class="material-symbols-rounded absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500">search</span>
+              <input type="text" id="searchInput" placeholder="Search applications..." 
+                class="w-full sm:w-64 pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors">
+            </div>
+            <select id="filterStatus" 
+              class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors">
+              <option value="all">All Status</option>
+              <option value="Applied">Applied</option>
+              <option value="Interviewing">Interviewing</option>
+              <option value="Offer">Offer</option>
+              <option value="Rejected">Rejected</option>
+            </select>
+            <button id="clearFiltersBtn" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" title="Clear filters">
+              <span class="material-symbols-rounded text-gray-500 dark:text-gray-400">filter_alt_off</span>
+            </button>
+          </div>
         </div>
-      </form>
-    </section>
+      </section>
 
-    <!-- Applications List -->
-    <section>
-      <h2 class="text-xl font-semibold text-gray-800 mb-4">Your Applications</h2>
-      <div id="applicationsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <!-- Applications will be rendered here -->
-      </div>
-      <div id="emptyState" class="text-center py-12 hidden">
-        <p class="text-gray-500 text-lg">Get started by adding your first application!</p>
-      </div>
-    </section>
+      <!-- Applications Grid -->
+      <section>
+        <div id="applicationsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <!-- Cards will be rendered here -->
+        </div>
+        <div id="emptyState" class="hidden">
+          <div class="text-center py-16 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-xl">
+            <span class="material-symbols-rounded text-6xl text-gray-400 dark:text-gray-500 mx-auto animate-pulse-soft">folder_managed</span>
+            <p class="mt-4 text-xl font-semibold text-gray-700 dark:text-gray-300">No applications found</p>
+            <p class="mt-2 text-gray-500 dark:text-gray-400">Get started by adding your first application!</p>
+            <button id="addFirstBtn" class="mt-6 px-6 py-3 bg-primary hover:bg-primary/90 text-white font-semibold rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+              Add Application
+            </button>
+          </div>
+        </div>
+        <div id="noResultsState" class="hidden">
+          <div class="text-center py-16 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-xl">
+            <span class="material-symbols-rounded text-6xl text-gray-400 dark:text-gray-500 mx-auto">search_off</span>
+            <p class="mt-4 text-xl font-semibold text-gray-700 dark:text-gray-300">No matching applications</p>
+            <p class="mt-2 text-gray-500 dark:text-gray-400">Try adjusting your search or filters</p>
+          </div>
+        </div>
+      </section>
+    </main>
   </div>
 
-  <!-- Delete Confirmation Modal -->
-  <div id="deleteModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-lg shadow-xl max-w-sm w-full p-6">
-      <h3 class="text-lg font-semibold text-gray-800 mb-2">Confirm Delete</h3>
-      <p class="text-gray-600 mb-6">Are you sure you want to delete this application?</p>
-      <div class="flex justify-end space-x-3">
-        <button id="cancelDelete" 
-          class="px-4 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-md transition duration-200">
-          Cancel
-        </button>
-        <button id="confirmDelete" 
-          class="px-4 py-2 text-white bg-red-600 hover:bg-red-700 rounded-md transition duration-200">
-          Delete
-        </button>
+  <!-- Edit Modal -->
+  <div id="editModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-slide-up">
+      <div class="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6">
+        <div class="flex items-center justify-between">
+          <h3 class="text-2xl font-bold text-[#1A202C] dark:text-white">Edit Application</h3>
+          <button id="closeEditModal" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+            <span class="material-symbols-rounded">close</span>
+          </button>
+        </div>
+      </div>
+      <div class="p-6">
+        <form id="editForm" class="space-y-6">
+          <input type="hidden" id="editId" name="id">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-2">
+              <label for="editCompany" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Company Name *</label>
+              <input type="text" id="editCompany" name="company" required 
+                class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors">
+            </div>
+            <div class="space-y-2">
+              <label for="editTitle" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Job Title *</label>
+              <input type="text" id="editTitle" name="title" required 
+                class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors">
+            </div>
+            <div class="space-y-2">
+              <label for="editDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Date Applied *</label>
+              <input type="date" id="editDate" name="date" required 
+                class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors">
+            </div>
+            <div class="space-y-2">
+              <label for="editLink" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Application Link</label>
+              <input type="url" id="editLink" name="link" 
+                class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors">
+            </div>
+          </div>
+          <div class="space-y-2">
+            <label for="editNotes" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes</label>
+            <textarea id="editNotes" name="notes" rows="4" 
+              class="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors resize-y"></textarea>
+          </div>
+          <div class="flex justify-end gap-3">
+            <button type="button" id="cancelEdit" class="px-6 py-3 text-base font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors">
+              Cancel
+            </button>
+            <button type="submit" 
+              class="flex items-center justify-center gap-2 px-6 py-3 bg-primary hover:bg-primary/90 text-white font-semibold rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+              <span class="material-symbols-rounded text-sm">save</span>
+              Save Changes
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
 
-  <script>
-    // Constants
-    const STORAGE_KEY = 'jobApplications';
-    const STATUS_OPTIONS = ['Applied', 'Interviewing', 'Offer', 'Rejected'];
-    const STATUS_COLORS = {
-      'Applied': 'border-blue-500 bg-blue-50',
-      'Interviewing': 'border-yellow-500 bg-yellow-50',
-      'Offer': 'border-green-500 bg-green-50',
-      'Rejected': 'border-red-500 bg-red-50'
-    };
-
-    // DOM Elements
-    const form = document.getElementById('applicationForm');
-    const applicationsList = document.getElementById('applicationsList');
-    const emptyState = document.getElementById('emptyState');
-    const deleteModal = document.getElementById('deleteModal');
-    const cancelDeleteBtn = document.getElementById('cancelDelete');
-    const confirmDeleteBtn = document.getElementById('confirmDelete');
-
-    // State
-    let applications = [];
-    let deleteId = null;
-
-    // Initialize
-    document.addEventListener('DOMContentLoaded', () => {
-      loadApplications();
-      renderApplications();
-    });
-
-    // Load applications from localStorage
-    function loadApplications() {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        try {
-          applications = JSON.parse(stored);
-        } catch (e) {
-          console.error('Failed to parse applications from localStorage', e);
-          applications = [];
-        }
-      }
-    }
-
-    // Save applications to localStorage
-    function saveApplications() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(applications));
-    }
-
-    // Format date for display
-    function formatDate(dateString) {
-      const date = new Date(dateString);
-      const options = { year: 'numeric', month: 'short', day: 'numeric' };
-      return date.toLocaleDateString('en-US', options);
-    }
-
-    // Create application card element
-    function createApplicationCard(app) {
-      const card = document.createElement('div');
-      card.className = `application-card border-2 rounded-lg p-4 shadow-md transition-all duration-200 hover:shadow-lg ${STATUS_COLORS[app.status]}`;
-      card.dataset.id = app.id;
-
-      const linkButton = app.link ? 
-        `<a href="${app.link}" target="_blank" rel="noopener noreferrer" 
-          class="inline-block mt-2 px-3 py-1 text-sm text-blue-600 bg-blue-100 hover:bg-blue-200 rounded transition">
-          View Job
-         </a>` : '';
-
-      const notesSection = app.notes ? 
-        `<div class="mt-3">
-          <p class="text-sm text-gray-600">${app.notes}</p>
-         </div>` : '';
-
-      card.innerHTML = `
-        <div class="flex justify-between items-start mb-3">
-          <div class="flex-1">
-            <h3 class="text-lg font-semibold text-gray-800">${app.company}</h3>
-            <p class="text-sm text-gray-600">${app.title}</p>
-          </div>
-          <button onclick="handleDeleteClick('${app.id}')" 
-            class="text-gray-400 hover:text-red-500 transition transform hover:scale-110" 
-            aria-label="Delete application">
-            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
-            </svg>
+  <!-- Delete Confirmation Modal -->
+  <div id="deleteModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-sm w-full animate-slide-up">
+      <div class="p-6 text-center">
+        <div class="mx-auto w-16 h-16 rounded-full bg-red-100 dark:bg-red-900 flex items-center justify-center mb-4">
+          <span class="material-symbols-rounded text-red-600 dark:text-red-400 text-2xl">warning</span>
+        </div>
+        <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-2">Delete Application</h3>
+        <p class="text-gray-600 dark:text-gray-400 mb-6">Are you sure you want to delete this application? This action cannot be undone.</p>
+        <div class="flex items-center justify-center gap-3">
+          <button id="cancelDelete" 
+            class="px-6 py-3 text-base font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors">
+            Cancel
+          </button>
+          <button id="confirmDelete" 
+            class="flex items-center justify-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+            <span class="material-symbols-rounded text-sm">delete</span>
+            Delete
           </button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notifications -->
+  <div id="toastContainer" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
+
+  <script>
+    // Main Application Class
+    class JobApplicationTracker {
+      constructor() {
+        this.STORAGE_KEY = 'jobApplications';
+        this.DRAFT_KEY = 'applicationDraft';
+        this.DARK_MODE_KEY = 'darkMode';
+        this.STATUS_OPTIONS = ['Applied', 'Interviewing', 'Offer', 'Rejected'];
+        this.STATUS_COLORS = {
+          'Applied': 'border-blue-500 bg-blue-50 dark:bg-blue-900/20',
+          'Interviewing': 'border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20',
+          'Offer': 'border-green-500 bg-green-50 dark:bg-green-900/20',
+          'Rejected': 'border-red-500 bg-red-50 dark:bg-red-900/20'
+        };
+        this.STATUS_BG_COLORS = {
+          'Applied': 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200',
+          'Interviewing': 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200',
+          'Offer': 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200',
+          'Rejected': 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'
+        };
         
-        <div class="mb-3">
-          <p class="text-sm text-gray-500">Applied on: ${formatDate(app.date)}</p>
-        </div>
-
-        ${notesSection}
-
-        <div class="mt-4 flex items-center justify-between">
-          ${linkButton}
-          <div class="flex items-center space-x-2">
-            <label for="status-${app.id}" class="text-sm text-gray-600">Status:</label>
-            <select id="status-${app.id}" onchange="handleStatusChange('${app.id}', this.value)"
-              class="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
-              ${STATUS_OPTIONS.map(status => 
-                `<option value="${status}" ${app.status === status ? 'selected' : ''}>${status}</option>`
-              ).join('')}
-            </select>
-          </div>
-        </div>
-      `;
-
-      return card;
-    }
-
-    // Render all applications
-    function renderApplications() {
-      if (applications.length === 0) {
-        applicationsList.innerHTML = '';
-        emptyState.classList.remove('hidden');
-        return;
+        this.applications = [];
+        this.filteredApplications = [];
+        this.deleteId = null;
+        this.editingId = null;
+        this.searchQuery = '';
+        
+        this.init();
       }
 
-      emptyState.classList.add('hidden');
-      applicationsList.innerHTML = '';
-      
-      applications.forEach(app => {
-        const card = createApplicationCard(app);
-        applicationsList.appendChild(card);
-      });
-    }
-
-    // Handle form submission
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      
-      const formData = new FormData(form);
-      
-      const newApp = {
-        id: Date.now().toString(),
-        company: formData.get('company').trim(),
-        title: formData.get('title').trim(),
-        date: formData.get('date'),
-        link: formData.get('link').trim(),
-        notes: formData.get('notes').trim(),
-        status: 'Applied'
-      };
-
-      // Validation
-      if (!newApp.company || !newApp.title || !newApp.date) {
-        return;
+      init() {
+        this.bindEvents();
+        this.loadApplications();
+        this.loadDraft();
+        this.render();
+        this.setupAutoSave();
+        this.setupKeyboardShortcuts();
       }
 
-      applications.unshift(newApp);
-      saveApplications();
-      renderApplications();
-      form.reset();
-      
-      // Reset date to today
-      document.getElementById('date').valueAsDate = new Date();
-    });
-
-    // Handle status change
-    function handleStatusChange(id, newStatus) {
-      const appIndex = applications.findIndex(app => app.id === id);
-      if (appIndex !== -1) {
-        applications[appIndex].status = newStatus;
-        saveApplications();
+      bindEvents() {
+        // Form submissions
+        document.getElementById('applicationForm').addEventListener('submit', (e) => this.handleFormSubmit(e));
+        document.getElementById('editForm').addEventListener('submit', (e) => this.handleEditSubmit(e));
         
-        // Update card style
-        const card = document.querySelector(`[data-id="${id}"]`);
-        if (card) {
-          // Remove all status classes
-          Object.values(STATUS_COLORS).forEach(classes => {
-            classes.split(' ').forEach(cls => card.classList.remove(cls));
-          });
-          // Add new status classes
-          STATUS_COLORS[newStatus].split(' ').forEach(cls => card.classList.add(cls));
+        // UI Controls
+        document.getElementById('darkModeToggle').addEventListener('click', () => this.toggleDarkMode());
+        document.getElementById('exportBtn').addEventListener('click', () => this.exportData());
+        document.getElementById('importBtn').addEventListener('click', () => document.getElementById('importFile').click());
+        document.getElementById('importFile').addEventListener('change', (e) => this.importData(e));
+        document.getElementById('clearFormBtn').addEventListener('click', () => this.clearForm());
+        document.getElementById('addFirstBtn').addEventListener('click', () => this.scrollToForm());
+        
+        // Filters
+        document.getElementById('searchInput').addEventListener('input', (e) => this.handleSearch(e));
+        document.getElementById('filterStatus').addEventListener('change', () => this.applyFilters());
+        document.getElementById('clearFiltersBtn').addEventListener('click', () => this.clearFilters());
+        
+        // Modals
+        document.getElementById('closeEditModal').addEventListener('click', () => this.closeEditModal());
+        document.getElementById('cancelEdit').addEventListener('click', () => this.closeEditModal());
+        document.getElementById('cancelDelete').addEventListener('click', () => this.closeDeleteModal());
+        document.getElementById('confirmDelete').addEventListener('click', () => this.confirmDelete());
+        
+        // Backdrop clicks
+        document.getElementById('editModal').addEventListener('click', (e) => {
+          if (e.target.id === 'editModal') this.closeEditModal();
+        });
+        document.getElementById('deleteModal').addEventListener('click', (e) => {
+          if (e.target.id === 'deleteModal') this.closeDeleteModal();
+        });
+        
+        // Load dark mode preference
+        const savedDarkMode = localStorage.getItem(this.DARK_MODE_KEY);
+        if (savedDarkMode !== null) {
+          document.documentElement.classList.toggle('dark', savedDarkMode === 'true');
+        } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          document.documentElement.classList.add('dark');
         }
       }
-    }
 
-    // Handle delete click (shows confirmation modal)
-    function handleDeleteClick(id) {
-      deleteId = id;
-      deleteModal.classList.remove('hidden');
-    }
-
-    // Close delete modal
-    function closeDeleteModal() {
-      deleteModal.classList.add('hidden');
-      deleteId = null;
-    }
-
-    // Cancel delete button
-    cancelDeleteBtn.addEventListener('click', closeDeleteModal);
-
-    // Confirm delete button
-    confirmDeleteBtn.addEventListener('click', () => {
-      if (deleteId) {
-        applications = applications.filter(app => app.id !== deleteId);
-        saveApplications();
-        renderApplications();
-        closeDeleteModal();
+      setupAutoSave() {
+        const form = document.getElementById('applicationForm');
+        const inputs = form.querySelectorAll('input, textarea');
+        
+        inputs.forEach(input => {
+          input.addEventListener('input', () => {
+            this.saveDraft();
+            this.showDraftIndicator();
+          });
+        });
       }
-    });
 
-    // Close modal when clicking outside
-    deleteModal.addEventListener('click', (e) => {
-      if (e.target === deleteModal) {
-        closeDeleteModal();
+      setupKeyboardShortcuts() {
+        document.addEventListener('keydown', (e) => {
+          if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+            e.preventDefault();
+            document.getElementById('company').focus();
+          }
+          if (e.key === 'Escape') {
+            this.closeEditModal();
+            this.closeDeleteModal();
+          }
+        });
       }
-    });
 
+      // Data Management
+      loadApplications() {
+        const stored = localStorage.getItem(this.STORAGE_KEY);
+        if (stored) {
+          try {
+            this.applications = JSON.parse(stored);
+          } catch (e) {
+            console.error('Failed to parse applications:', e);
+            this.applications = [];
+          }
+        }
+        this.filteredApplications = [...this.applications];
+      }
+
+      saveApplications() {
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.applications));
+        this.updateStats();
+      }
+
+      loadDraft() {
+        const draft = localStorage.getItem(this.DRAFT_KEY);
+        if (draft) {
+          try {
+            const data = JSON.parse(draft);
+            const form = document.getElementById('applicationForm');
+            Object.keys(data).forEach(key => {
+              const input = form.elements[key];
+              if (input) input.value = data[key];
+            });
+          } catch (e) {
+            console.error('Failed to load draft:', e);
+          }
+        }
+      }
+
+      saveDraft() {
+        const form = document.getElementById('applicationForm');
+        const data = Object.fromEntries(new FormData(form));
+        localStorage.setItem(this.DRAFT_KEY, JSON.stringify(data));
+      }
+
+      clearDraft() {
+        localStorage.removeItem(this.DRAFT_KEY);
+        document.getElementById('saveDraftBtn').classList.add('hidden');
+      }
+
+      showDraftIndicator() {
+        const btn = document.getElementById('saveDraftBtn');
+        btn.classList.remove('hidden');
+        btn.textContent = 'Draft Saved';
+        setTimeout(() => btn.textContent = 'Save Draft', 2000);
+      }
+
+      // Form Handling
+      handleFormSubmit(e) {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        
+        const application = {
+          id: Date.now().toString(),
+          company: formData.get('company').trim(),
+          title: formData.get('title').trim(),
+          date: formData.get('date'),
+          link: formData.get('link').trim(),
+          notes: formData.get('notes').trim(),
+          status: 'Applied',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+
+        if (!application.company || !application.title || !application.date) {
+          this.showToast('Please fill all required fields', 'error');
+          return;
+        }
+
+        this.applications.unshift(application);
+        this.saveApplications();
+        this.applyFilters();
+        this.clearForm();
+        this.clearDraft();
+        this.showToast('Application added successfully!', 'success');
+        document.getElementById('date').valueAsDate = new Date();
+      }
+
+      clearForm() {
+        document.getElementById('applicationForm').reset();
+        this.clearDraft();
+      }
+
+      scrollToForm() {
+        document.getElementById('applicationForm').scrollIntoView({ behavior: 'smooth' });
+      }
+
+      // Edit Functionality
+      openEditModal(id) {
+        const app = this.applications.find(a => a.id === id);
+        if (!app) return;
+
+        this.editingId = id;
+        document.getElementById('editId').value = app.id;
+        document.getElementById('editCompany').value = app.company;
+        document.getElementById('editTitle').value = app.title;
+        document.getElementById('editDate').value = app.date;
+        document.getElementById('editLink').value = app.link;
+        document.getElementById('editNotes').value = app.notes;
+
+        document.getElementById('editModal').classList.remove('hidden');
+        document.getElementById('editCompany').focus();
+      }
+
+      closeEditModal() {
+        document.getElementById('editModal').classList.add('hidden');
+        this.editingId = null;
+      }
+
+      handleEditSubmit(e) {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        
+        const id = formData.get('id');
+        const index = this.applications.findIndex(a => a.id === id);
+        if (index === -1) return;
+
+        const updatedApp = {
+          ...this.applications[index],
+          company: formData.get('company').trim(),
+          title: formData.get('title').trim(),
+          date: formData.get('date'),
+          link: formData.get('link').trim(),
+          notes: formData.get('notes').trim(),
+          updatedAt: new Date().toISOString()
+        };
+
+        if (!updatedApp.company || !updatedApp.title || !updatedApp.date) {
+          this.showToast('Please fill all required fields', 'error');
+          return;
+        }
+
+        this.applications[index] = updatedApp;
+        this.saveApplications();
+        this.applyFilters();
+        this.closeEditModal();
+        this.showToast('Application updated successfully!', 'success');
+      }
+
+      // Delete Functionality
+      handleDeleteClick(id) {
+        this.deleteId = id;
+        document.getElementById('deleteModal').classList.remove('hidden');
+      }
+
+      closeDeleteModal() {
+        document.getElementById('deleteModal').classList.add('hidden');
+        this.deleteId = null;
+      }
+
+      confirmDelete() {
+        if (this.deleteId) {
+          this.applications = this.applications.filter(app => app.id !== this.deleteId);
+          this.saveApplications();
+          this.applyFilters();
+          this.closeDeleteModal();
+          this.showToast('Application deleted successfully!', 'success');
+        }
+      }
+
+      // Search & Filter
+      handleSearch(e) {
+        this.searchQuery = e.target.value.toLowerCase();
+        this.applyFilters();
+      }
+
+      applyFilters() {
+        const statusFilter = document.getElementById('filterStatus').value;
+        
+        this.filteredApplications = this.applications.filter(app => {
+          const matchesSearch = !this.searchQuery || 
+            app.company.toLowerCase().includes(this.searchQuery) ||
+            app.title.toLowerCase().includes(this.searchQuery) ||
+            app.notes.toLowerCase().includes(this.searchQuery);
+          
+          const matchesStatus = statusFilter === 'all' || app.status === statusFilter;
+          
+          return matchesSearch && matchesStatus;
+        });
+        
+        this.render();
+      }
+
+      clearFilters() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('filterStatus').value = 'all';
+        this.searchQuery = '';
+        this.applyFilters();
+      }
+
+      // Statistics
+      updateStats() {
+        const stats = {
+          Applied: 0,
+          Interviewing: 0,
+          Offer: 0,
+          Rejected: 0
+        };
+        
+        this.applications.forEach(app => {
+          stats[app.status]++;
+        });
+        
+        // Update header stats
+        document.getElementById('statApplied').textContent = stats.Applied;
+        document.getElementById('statInterviewing').textContent = stats.Interviewing;
+        document.getElementById('statOffer').textContent = stats.Offer;
+        document.getElementById('statRejected').textContent = stats.Rejected;
+        
+        // Update dashboard cards
+        document.getElementById('statAppliedCard').textContent = stats.Applied;
+        document.getElementById('statInterviewingCard').textContent = stats.Interviewing;
+        document.getElementById('statOfferCard').textContent = stats.Offer;
+        document.getElementById('statRejectedCard').textContent = stats.Rejected;
+      }
+
+      // Rendering
+      render() {
+        const grid = document.getElementById('applicationsGrid');
+        const emptyState = document.getElementById('emptyState');
+        const noResultsState = document.getElementById('noResultsState');
+        
+        // Clear existing content
+        grid.innerHTML = '';
+        
+        if (this.applications.length === 0) {
+          emptyState.classList.remove('hidden');
+          noResultsState.classList.add('hidden');
+          return;
+        }
+        
+        if (this.filteredApplications.length === 0) {
+          emptyState.classList.add('hidden');
+          noResultsState.classList.remove('hidden');
+          return;
+        }
+        
+        emptyState.classList.add('hidden');
+        noResultsState.classList.add('hidden');
+        
+        // Render cards
+        this.filteredApplications.forEach(app => {
+          const card = this.createApplicationCard(app);
+          grid.appendChild(card);
+        });
+      }
+
+      createApplicationCard(app) {
+        const card = document.createElement('div');
+        card.className = `flex flex-col rounded-xl shadow-lg border-2 overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${this.STATUS_COLORS[app.status]}`;
+        
+        const formattedDate = new Date(app.date).toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'short', 
+          day: 'numeric' 
+        });
+
+        const linkButton = app.link ? 
+          `<a href="${app.link}" target="_blank" rel="noopener noreferrer" 
+            class="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary/80 transition-colors">
+            <span class="material-symbols-rounded text-sm">open_in_new</span>
+            View Job
+          </a>` : '';
+
+        const notesSection = app.notes ? 
+          `<div class="mt-4 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+            <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed line-clamp-2">${app.notes}</p>
+          </div>` : '';
+
+        card.innerHTML = `
+          <div class="p-5 flex-grow">
+            <div class="flex items-start justify-between mb-3">
+              <div class="flex-grow">
+                <h3 class="text-lg font-bold text-[#1A202C] dark:text-white mb-1">${app.company}</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">${app.title}</p>
+                <span class="inline-block px-2 py-1 text-xs font-medium rounded-full ${this.STATUS_BG_COLORS[app.status]}">${app.status}</span>
+              </div>
+              <div class="flex items-center gap-1">
+                <button onclick="app.openEditModal('${app.id}')" 
+                  class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" title="Edit">
+                  <span class="material-symbols-rounded text-gray-500 dark:text-gray-400 hover:text-blue-500">edit</span>
+                </button>
+                <button onclick="app.handleDeleteClick('${app.id}')" 
+                  class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" title="Delete">
+                  <span class="material-symbols-rounded text-gray-500 dark:text-gray-400 hover:text-red-500">delete</span>
+                </button>
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <p class="text-xs text-gray-500 dark:text-gray-400">Applied: ${formattedDate}</p>
+            </div>
+
+            ${notesSection}
+          </div>
+
+          <div class="p-4 bg-gray-50 dark:bg-gray-800/30 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between gap-4">
+            ${linkButton}
+            <div class="flex items-center gap-2">
+              <label for="status-${app.id}" class="text-sm text-gray-600 dark:text-gray-400 sr-only">Status</label>
+              <select id="status-${app.id}" onchange="app.handleStatusChange('${app.id}', this.value)"
+                class="text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-[#1A202C] dark:text-white focus:ring-2 focus:ring-primary focus:border-primary py-2 px-3">
+                ${this.STATUS_OPTIONS.map(status => 
+                  `<option value="${status}" ${app.status === status ? 'selected' : ''}>${status}</option>`
+                ).join('')}
+              </select>
+            </div>
+          </div>
+        `;
+        
+        return card;
+      }
+
+      handleStatusChange(id, newStatus) {
+        const index = this.applications.findIndex(a => a.id === id);
+        if (index !== -1) {
+          this.applications[index].status = newStatus;
+          this.applications[index].updatedAt = new Date().toISOString();
+          this.saveApplications();
+          this.render();
+          this.showToast(`Status updated to ${newStatus}`, 'info');
+        }
+      }
+
+      // Dark Mode
+      toggleDarkMode() {
+        const isDark = document.documentElement.classList.toggle('dark');
+        localStorage.setItem(this.DARK_MODE_KEY, isDark);
+      }
+
+      // Export/Import
+      exportData() {
+        const data = {
+          applications: this.applications,
+          exportedAt: new Date().toISOString()
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `job-applications-${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        this.showToast('Data exported successfully!', 'success');
+      }
+
+      importData(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          try {
+            const data = JSON.parse(event.target.result);
+            if (data.applications && Array.isArray(data.applications)) {
+              if (confirm(`Import ${data.applications.length} applications? This will merge with existing data.`)) {
+                this.applications = [...data.applications, ...this.applications];
+                this.saveApplications();
+                this.applyFilters();
+                this.showToast('Data imported successfully!', 'success');
+              }
+            } else {
+              throw new Error('Invalid file format');
+            }
+          } catch (error) {
+            this.showToast('Failed to import data: Invalid file format', 'error');
+          }
+        };
+        reader.readAsText(file);
+        e.target.value = '';
+      }
+
+      // Toast Notifications
+      showToast(message, type = 'info') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        
+        const colors = {
+          success: 'bg-green-500',
+          error: 'bg-red-500',
+          warning: 'bg-yellow-500',
+          info: 'bg-blue-500'
+        };
+        
+        toast.className = `flex items-center gap-2 text-white ${colors[type]} px-4 py-3 rounded-lg shadow-lg animate-slide-up`;
+        toast.innerHTML = `
+          <span class="material-symbols-rounded text-sm">
+            ${type === 'success' ? 'check_circle' : type === 'error' ? 'error' : type === 'warning' ? 'warning' : 'info'}
+          </span>
+          <span class="font-medium">${message}</span>
+        `;
+        
+        container.appendChild(toast);
+        
+        setTimeout(() => {
+          toast.remove();
+        }, 3000);
+      }
+    }
+
+    // Initialize the app
+    const app = new JobApplicationTracker();
+    
     // Set today's date as default
     document.getElementById('date').valueAsDate = new Date();
   </script>
