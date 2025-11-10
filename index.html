@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Job Application Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 font-sans">
+  <div class="max-w-4xl mx-auto p-4 md:p-6">
+    <!-- Header -->
+    <header class="mb-8">
+      <h1 class="text-3xl md:text-4xl font-bold text-gray-800">Job Application Tracker</h1>
+    </header>
+
+    <!-- Form Section -->
+    <section class="bg-white p-6 rounded-lg shadow-md mb-8">
+      <h2 class="text-xl font-semibold text-gray-800 mb-4">Add New Application</h2>
+      <form id="applicationForm" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="company" class="block text-sm font-medium text-gray-700 mb-1">Company Name *</label>
+            <input type="text" id="company" name="company" required 
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+          </div>
+          <div>
+            <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Job Title *</label>
+            <input type="text" id="title" name="title" required 
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="date" class="block text-sm font-medium text-gray-700 mb-1">Date Applied *</label>
+            <input type="date" id="date" name="date" required 
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+          </div>
+          <div>
+            <label for="link" class="block text-sm font-medium text-gray-700 mb-1">Application Link</label>
+            <input type="url" id="link" name="link" placeholder="https://example.com"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+          </div>
+        </div>
+
+        <div>
+          <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+          <textarea id="notes" name="notes" rows="3" 
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="Any additional notes..."></textarea>
+        </div>
+
+        <div class="flex justify-end">
+          <button type="submit" 
+            class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+            Add Application
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Applications List -->
+    <section>
+      <h2 class="text-xl font-semibold text-gray-800 mb-4">Your Applications</h2>
+      <div id="applicationsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Applications will be rendered here -->
+      </div>
+      <div id="emptyState" class="text-center py-12 hidden">
+        <p class="text-gray-500 text-lg">Get started by adding your first application!</p>
+      </div>
+    </section>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div id="deleteModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg shadow-xl max-w-sm w-full p-6">
+      <h3 class="text-lg font-semibold text-gray-800 mb-2">Confirm Delete</h3>
+      <p class="text-gray-600 mb-6">Are you sure you want to delete this application?</p>
+      <div class="flex justify-end space-x-3">
+        <button id="cancelDelete" 
+          class="px-4 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-md transition duration-200">
+          Cancel
+        </button>
+        <button id="confirmDelete" 
+          class="px-4 py-2 text-white bg-red-600 hover:bg-red-700 rounded-md transition duration-200">
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Constants
+    const STORAGE_KEY = 'jobApplications';
+    const STATUS_OPTIONS = ['Applied', 'Interviewing', 'Offer', 'Rejected'];
+    const STATUS_COLORS = {
+      'Applied': 'border-blue-500 bg-blue-50',
+      'Interviewing': 'border-yellow-500 bg-yellow-50',
+      'Offer': 'border-green-500 bg-green-50',
+      'Rejected': 'border-red-500 bg-red-50'
+    };
+
+    // DOM Elements
+    const form = document.getElementById('applicationForm');
+    const applicationsList = document.getElementById('applicationsList');
+    const emptyState = document.getElementById('emptyState');
+    const deleteModal = document.getElementById('deleteModal');
+    const cancelDeleteBtn = document.getElementById('cancelDelete');
+    const confirmDeleteBtn = document.getElementById('confirmDelete');
+
+    // State
+    let applications = [];
+    let deleteId = null;
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      loadApplications();
+      renderApplications();
+    });
+
+    // Load applications from localStorage
+    function loadApplications() {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        try {
+          applications = JSON.parse(stored);
+        } catch (e) {
+          console.error('Failed to parse applications from localStorage', e);
+          applications = [];
+        }
+      }
+    }
+
+    // Save applications to localStorage
+    function saveApplications() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(applications));
+    }
+
+    // Format date for display
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      const options = { year: 'numeric', month: 'short', day: 'numeric' };
+      return date.toLocaleDateString('en-US', options);
+    }
+
+    // Create application card element
+    function createApplicationCard(app) {
+      const card = document.createElement('div');
+      card.className = `application-card border-2 rounded-lg p-4 shadow-md transition-all duration-200 hover:shadow-lg ${STATUS_COLORS[app.status]}`;
+      card.dataset.id = app.id;
+
+      const linkButton = app.link ? 
+        `<a href="${app.link}" target="_blank" rel="noopener noreferrer" 
+          class="inline-block mt-2 px-3 py-1 text-sm text-blue-600 bg-blue-100 hover:bg-blue-200 rounded transition">
+          View Job
+         </a>` : '';
+
+      const notesSection = app.notes ? 
+        `<div class="mt-3">
+          <p class="text-sm text-gray-600">${app.notes}</p>
+         </div>` : '';
+
+      card.innerHTML = `
+        <div class="flex justify-between items-start mb-3">
+          <div class="flex-1">
+            <h3 class="text-lg font-semibold text-gray-800">${app.company}</h3>
+            <p class="text-sm text-gray-600">${app.title}</p>
+          </div>
+          <button onclick="handleDeleteClick('${app.id}')" 
+            class="text-gray-400 hover:text-red-500 transition transform hover:scale-110" 
+            aria-label="Delete application">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+            </svg>
+          </button>
+        </div>
+        
+        <div class="mb-3">
+          <p class="text-sm text-gray-500">Applied on: ${formatDate(app.date)}</p>
+        </div>
+
+        ${notesSection}
+
+        <div class="mt-4 flex items-center justify-between">
+          ${linkButton}
+          <div class="flex items-center space-x-2">
+            <label for="status-${app.id}" class="text-sm text-gray-600">Status:</label>
+            <select id="status-${app.id}" onchange="handleStatusChange('${app.id}', this.value)"
+              class="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              ${STATUS_OPTIONS.map(status => 
+                `<option value="${status}" ${app.status === status ? 'selected' : ''}>${status}</option>`
+              ).join('')}
+            </select>
+          </div>
+        </div>
+      `;
+
+      return card;
+    }
+
+    // Render all applications
+    function renderApplications() {
+      if (applications.length === 0) {
+        applicationsList.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+      applicationsList.innerHTML = '';
+      
+      applications.forEach(app => {
+        const card = createApplicationCard(app);
+        applicationsList.appendChild(card);
+      });
+    }
+
+    // Handle form submission
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      const formData = new FormData(form);
+      
+      const newApp = {
+        id: Date.now().toString(),
+        company: formData.get('company').trim(),
+        title: formData.get('title').trim(),
+        date: formData.get('date'),
+        link: formData.get('link').trim(),
+        notes: formData.get('notes').trim(),
+        status: 'Applied'
+      };
+
+      // Validation
+      if (!newApp.company || !newApp.title || !newApp.date) {
+        return;
+      }
+
+      applications.unshift(newApp);
+      saveApplications();
+      renderApplications();
+      form.reset();
+      
+      // Reset date to today
+      document.getElementById('date').valueAsDate = new Date();
+    });
+
+    // Handle status change
+    function handleStatusChange(id, newStatus) {
+      const appIndex = applications.findIndex(app => app.id === id);
+      if (appIndex !== -1) {
+        applications[appIndex].status = newStatus;
+        saveApplications();
+        
+        // Update card style
+        const card = document.querySelector(`[data-id="${id}"]`);
+        if (card) {
+          // Remove all status classes
+          Object.values(STATUS_COLORS).forEach(classes => {
+            classes.split(' ').forEach(cls => card.classList.remove(cls));
+          });
+          // Add new status classes
+          STATUS_COLORS[newStatus].split(' ').forEach(cls => card.classList.add(cls));
+        }
+      }
+    }
+
+    // Handle delete click (shows confirmation modal)
+    function handleDeleteClick(id) {
+      deleteId = id;
+      deleteModal.classList.remove('hidden');
+    }
+
+    // Close delete modal
+    function closeDeleteModal() {
+      deleteModal.classList.add('hidden');
+      deleteId = null;
+    }
+
+    // Cancel delete button
+    cancelDeleteBtn.addEventListener('click', closeDeleteModal);
+
+    // Confirm delete button
+    confirmDeleteBtn.addEventListener('click', () => {
+      if (deleteId) {
+        applications = applications.filter(app => app.id !== deleteId);
+        saveApplications();
+        renderApplications();
+        closeDeleteModal();
+      }
+    });
+
+    // Close modal when clicking outside
+    deleteModal.addEventListener('click', (e) => {
+      if (e.target === deleteModal) {
+        closeDeleteModal();
+      }
+    });
+
+    // Set today's date as default
+    document.getElementById('date').valueAsDate = new Date();
+  </script>
+</body>
+</html>
